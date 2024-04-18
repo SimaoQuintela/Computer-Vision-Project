@@ -7,10 +7,6 @@ from tensorflow.keras.preprocessing.image import ImageDataGenerator
 (x_train, y_train), (x_test, y_test) = tf.keras.datasets.fashion_mnist.load_data()
 
 
-#print(dados_treino)
-#print(dados_teste)
-
-
 print(f"dimensao dados treino:", x_train.shape)
 print(f"dimensao dados teste:", x_test.shape)
 
