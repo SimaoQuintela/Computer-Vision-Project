@@ -55,6 +55,6 @@ mlp.build()
 mlp.fit(x_train, y_train)
 
 test_loss, test_acc = mlp.model.evaluate(x_test, y_test)
-print('Test loss:', test_acc)
+print('Test loss:', test_loss)
 print('Test accuracy:', test_acc)
 
