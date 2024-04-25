@@ -7,23 +7,18 @@ from get_data import *
 
 
 
-
 class MLP:
      
-    def __init__(self, epochs=1, batch_size=32, output_neurons=2):
+    def __init__(self, epochs=10, batch_size=32, output_neurons=10):
         self.epochs = epochs
         self.batch_size = batch_size
         self.output_neurons = output_neurons
     
 
-    def prepare_data(self, training_set):    
-        X = np.array([i[1] for i in training_set], dtype='float32').reshape(-1, len(training_set[0][1]))
-        y = np.array([i[0] for i in training_set])
-        return X, y
-
 
     def build(self):
         self.model = tf.keras.Sequential([
+            tf.keras.layers.Flatten(input_shape=(28, 28, 1)),
             tf.keras.layers.Dense(64, activation="relu"),
             tf.keras.layers.Dense(128, activation="relu"),
             tf.keras.layers.Dense(self.output_neurons, activation="softmax"),
@@ -33,18 +28,33 @@ class MLP:
                            metrics=['accuracy'])
     
 
-    def fit(self, training_set):
-        X, y = self.prepare_data(training_set)
-        self.model.fit(X, y, epochs=self.epochs, batch_size=self.batch_size)
+    def fit(self, x_train, y_train):
+        self.model.fit(x_train, y_train, epochs=self.epochs, batch_size=self.batch_size)
 
     
-
+    
     def predict(self, obs):
-         
-         obs = np.array(obs).reshape(1, -1)
+        obs = obs.reshape(1, 28, 28, 1)
+        prediction = self.model.predict(obs)
+        predicted_value = np.argmax(prediction)
+        return predicted_value
 
-         prediction = self.model.predict(obs)
 
-         predicted_value = np.argmax(prediction)
+    def print_atributtes(self):
+        print(f"Epochs: {self.epochs}, Batch_size: {self.batch_size}, Output_neurons: {self.output_neurons}")
 
-         return predicted_value
+
+
+
+x_train, y_train, x_test, y_test, classes = prepare_data()
+y_train = tf.keras.utils.to_categorical(y_train)
+y_test = tf.keras.utils.to_categorical(y_test)
+
+mlp = MLP()
+mlp.build()
+mlp.fit(x_train, y_train)
+
+test_loss, test_acc = mlp.model.evaluate(x_test, y_test)
+print('Test loss:', test_acc)
+print('Test accuracy:', test_acc)
+

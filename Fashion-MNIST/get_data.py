@@ -39,7 +39,7 @@ def visualize_data(x_train, y_train, classes):
 def prepare_data():
     (x_train, y_train), (x_test, y_test), classes = load_data()
     analyze_data(x_train, y_train, x_test, y_test, classes)
-    visualize_data(x_train, y_train, classes)
+    #visualize_data(x_train, y_train, classes)
     #normalizing/scaling pixel values to [0, 1]
     x_train = x_train.astype('float32')/255.
     x_test = x_test.astype('float32')/255.

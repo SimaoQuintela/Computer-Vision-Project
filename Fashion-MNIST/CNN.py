@@ -109,5 +109,4 @@ def plot_learning_curves(history, epochs):
     plt.title('Training/Validation Loss')
     plt.show()
 
-#plot learning curves
-plot_learning_curves(history, epochs)
+
