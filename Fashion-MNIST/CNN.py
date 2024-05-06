@@ -67,7 +67,7 @@ def compile_and_fit(model, x_train, y_train, x_test, y_test, batch_size, epochs,
     return model, history 
 
 
-
+'''
 num_classes = 10
 batch_size = 128
 epochs = 10
@@ -85,7 +85,7 @@ score = cnn_model.evaluate(x_test, y_test)
 print('Evaluation Loss:', score[0])
 print('Evaluation Accuracy:', score[1])
 
-
+'''
 
 #Vizualizing Learning Curves
 def plot_learning_curves(history, epochs):

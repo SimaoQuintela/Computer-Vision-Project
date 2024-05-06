@@ -9,10 +9,20 @@ from get_data import *
 
 class MLP:
      
-    def __init__(self, epochs=10, batch_size=32, output_neurons=10):
+    def __init__(self, epochs=10, batch_size=32, output_neurons=10, data_aug=False):
         self.epochs = epochs
         self.batch_size = batch_size
         self.output_neurons = output_neurons
+        self.data_aug = data_aug
+        if self.data_aug:
+            self.datagen = ImageDataGenerator(
+                rotation_range = 90, #randomly rotate images in the range (degrees, 0 to 180)
+                zoom_range = 0., #set range for random zoom
+                horizontal_flip = False, #randomly horizontally flip images
+                vertical_flip = True, #randomly vertically flip images
+                rescale = None, #rescaling factor (applied before any other transf)
+                preprocessing_function = None #function applied on each input
+            )
     
 
 
@@ -29,7 +39,10 @@ class MLP:
     
 
     def fit(self, x_train, y_train):
-        self.model.fit(x_train, y_train, epochs=self.epochs, batch_size=self.batch_size)
+        if self.data_aug:
+            self.model.fit_generator(self.datagen.flow(x_train, y_train, batch_size=self.batch_size), epochs=self.epochs, validation_data=(x_test, y_test))
+        else:
+            self.model.fit(x_train, y_train, epochs=self.epochs, batch_size=self.batch_size, validation_data=(x_test, y_test))
 
     
     
