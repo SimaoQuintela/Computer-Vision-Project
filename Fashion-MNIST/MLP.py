@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import keras
 from get_data import *
+from sklearn.model_selection import cross_val_score, KFold
 
 
 
@@ -58,16 +59,49 @@ class MLP:
 
 
 
+def cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=5):
+    x = np.concatenate([x_train, x_test])
+    y = np.concatenate([y_train, y_test])
+
+    
+    kf = KFold(n_splits=n_splits, shuffle=True)
+
+    
+    scores = []
+
+    
+    for train_index, test_index in kf.split(x):
+        x_train_fold, x_val_fold = x[train_index], x[test_index]
+        y_train_fold, y_val_fold = y[train_index], y[test_index]
+
+
+        mlp.fit(x_train_fold, y_train_fold)
+
+        _, accuracy = mlp.model.evaluate(x_val_fold, y_val_fold)
+
+        scores.append(accuracy)
+
+    print("Cross Validation Scores:", scores)
+    print("Média Scores:", np.mean(scores))
+
+
 
 x_train, y_train, x_test, y_test, classes = prepare_data()
 y_train = tf.keras.utils.to_categorical(y_train)
 y_test = tf.keras.utils.to_categorical(y_test)
 
+
 mlp = MLP()
 mlp.build()
-mlp.fit(x_train, y_train)
+#mlp.fit(x_train, y_train)
 
-test_loss, test_acc = mlp.model.evaluate(x_test, y_test)
-print('Test loss:', test_loss)
-print('Test accuracy:', test_acc)
+
+#test_loss, test_acc = mlp.model.evaluate(x_test, y_test)
+#print('Test loss:', test_loss)
+#print('Test accuracy:', test_acc)
+
+cross_validation(mlp, x_train, y_train, x_test, y_test)
+
+
+
 

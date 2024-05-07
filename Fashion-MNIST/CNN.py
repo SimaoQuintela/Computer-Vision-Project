@@ -1,8 +1,10 @@
+import numpy as np
 import tensorflow as tf
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
 import matplotlib.pyplot as plt
 import keras
 from get_data import *
+from sklearn.model_selection import cross_val_score, KFold
 
 
 #CNN using the sequential API
@@ -67,25 +69,6 @@ def compile_and_fit(model, x_train, y_train, x_test, y_test, batch_size, epochs,
     return model, history 
 
 
-'''
-num_classes = 10
-batch_size = 128
-epochs = 10
-apply_data_augmentation = False
-num_predictions = 20
-#load data
-x_train, y_train, x_test, y_test, classes = prepare_data()
-#create the model
-cnn_model = create_cnn(num_classes)
-#compile and fit model
-cnn_model, history = compile_and_fit(cnn_model, x_train, y_train, x_test, y_test,
- batch_size, epochs, apply_data_augmentation)
-#Evaluate trained model
-score = cnn_model.evaluate(x_test, y_test)
-print('Evaluation Loss:', score[0])
-print('Evaluation Accuracy:', score[1])
-
-'''
 
 #Vizualizing Learning Curves
 def plot_learning_curves(history, epochs):
@@ -108,5 +91,59 @@ def plot_learning_curves(history, epochs):
     plt.legend(loc='upper right')
     plt.title('Training/Validation Loss')
     plt.show()
+
+
+
+def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, n_splits=5):
+    x = np.concatenate([x_train, x_test])
+    y = np.concatenate([y_train, y_test])
+
+    
+    kf = KFold(n_splits=n_splits, shuffle=True)
+
+    
+    scores = []
+
+    
+    for train_index, test_index in kf.split(x):
+        x_train_fold, x_val_fold = x[train_index], x[test_index]
+        y_train_fold, y_val_fold = y[train_index], y[test_index]
+
+
+        compile_and_fit(model, x_train_fold, y_train_fold, x_val_fold, y_val_fold, batch_size, epochs, apply_data_augmentation)
+
+        _, accuracy = model.evaluate(x_val_fold, y_val_fold)
+
+        scores.append(accuracy)
+
+    print("Cross Validation Scores:", scores)
+    print("Média Scores:", np.mean(scores))
+
+
+num_classes = 10
+batch_size = 128
+epochs = 1
+apply_data_augmentation = False
+num_predictions = 20
+#load data
+x_train, y_train, x_test, y_test, classes = prepare_data()
+#create the model
+cnn_model = create_cnn(num_classes)
+#compile and fit model
+
+'''
+cnn_model, history = compile_and_fit(cnn_model, x_train, y_train, x_test, y_test,
+ batch_size, epochs, apply_data_augmentation)
+#Evaluate trained model
+score = cnn_model.evaluate(x_test, y_test)
+print('Evaluation Loss:', score[0])
+print('Evaluation Accuracy:', score[1])
+
+plot_learning_curves(history, epochs)
+'''
+
+cross_validation(cnn_model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, n_splits=5)
+
+
 
 
