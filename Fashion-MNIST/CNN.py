@@ -9,22 +9,22 @@ import time
 
 
 #CNN using the sequential API
-def create_cnn(num_classes):
+def create_cnn(num_classes, f_act):
     model = tf.keras.Sequential()
     #microarchitecture
     model.add(tf.keras.layers.Conv2D(32, (3, 3), (1, 1), padding='same',
-    activation='relu', input_shape=(28, 28, 1)))
-    model.add(tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation='relu'))
+    activation=f_act, input_shape=(28, 28, 1)))
+    model.add(tf.keras.layers.Conv2D(32, (3, 3), padding='same', activation=f_act))
     model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2,2)))
     model.add(tf.keras.layers.Dropout(0.25))
     #microarchitecture
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'))
-    model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation='relu'))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation=f_act))
+    model.add(tf.keras.layers.Conv2D(64, (3, 3), padding='same', activation=f_act))
     model.add(tf.keras.layers.MaxPooling2D(pool_size=(2, 2), strides=(2,2)))
     model.add(tf.keras.layers.Dropout(0.25))
     #bottleneck
     model.add(tf.keras.layers.Flatten())
-    model.add(tf.keras.layers.Dense(128, activation='relu'))
+    model.add(tf.keras.layers.Dense(128, activation=f_act))
     model.add(tf.keras.layers.Dropout(0.5))
     #output layer
     model.add(tf.keras.layers.Dense(num_classes, activation='softmax'))
@@ -34,9 +34,9 @@ def create_cnn(num_classes):
 
 
 
-def compile_and_fit(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation):
+def compile_and_fit(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, lr):
     #sparse_categorical_crossentropy so that we do not need to one hot encode labels
-    model.compile(optimizer=tf.keras.optimizers.Adam(0.001),
+    model.compile(optimizer=tf.keras.optimizers.Adam(lr),
     loss=tf.keras.losses.sparse_categorical_crossentropy,
     metrics=['accuracy'])
 
@@ -95,7 +95,7 @@ def plot_learning_curves(history, epochs):
 
 
 
-def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, n_splits=5):
+def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, lr, n_splits=5):
     x = np.concatenate([x_train, x_test])
     y = np.concatenate([y_train, y_test])
 
@@ -111,7 +111,7 @@ def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs
         y_train_fold, y_val_fold = y[train_index], y[test_index]
 
 
-        compile_and_fit(model, x_train_fold, y_train_fold, x_val_fold, y_val_fold, batch_size, epochs, apply_data_augmentation)
+        compile_and_fit(model, x_train_fold, y_train_fold, x_val_fold, y_val_fold, batch_size, epochs, apply_data_augmentation, lr)
 
         _, accuracy = model.evaluate(x_val_fold, y_val_fold)
 
@@ -127,10 +127,11 @@ def grid_search_cnn(params, x_train, y_train, x_test, y_test):
     num_classes = 10
 
     results = []
-    cnn_model = create_cnn(num_classes)
+
     for param in ParameterGrid(params):
+        cnn_model = create_cnn(num_classes, param['activation_function'])
         print("Training with parameters:", param)
-        cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], n_splits=5)
+        cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=5)
         results.append(param)
     return(results)
 
@@ -139,7 +140,9 @@ def grid_search_cnn(params, x_train, y_train, x_test, y_test):
 params = {
     'epochs': [1, 2],
     'batch_size': [32, 64],
-    'data_aug': [True, False]
+    'data_aug': [True, False],
+    'activation_function': ['relu', 'sigmoid', 'linear', 'tanh', 'softplus'],
+    'learning_rate': [0.1, 0.01, 0.001, 0.0001]
 }
 
 
@@ -148,15 +151,17 @@ num_classes = 10
 batch_size = 128
 epochs = 1
 apply_data_augmentation = False
+lr = 0.001
 num_predictions = 20
 '''
 #load data
 x_train, y_train, x_test, y_test, classes = prepare_data()
 #create the model
-#cnn_model = create_cnn(num_classes)
+#cnn_model = create_cnn(num_classes, 'relu')
 #compile and fit model
 
 grid_search_cnn(params, x_train, y_train, x_test, y_test)
+
 
 
 '''
