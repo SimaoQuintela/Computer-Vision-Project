@@ -2,33 +2,38 @@ import numpy as np
 import tensorflow as tf
 from get_data import *
 from sklearn.model_selection import cross_val_score, KFold
+import matplotlib.pyplot as plt
+import keras
 from tensorflow.keras.preprocessing.image import ImageDataGenerator
+from sklearn.model_selection import cross_val_score, KFold, ParameterGrid
+import time
+import csv
 
 
 #usar simpleRNN, GRU, LTSM ou Bidirectional
-def create_rnn(num_classes):
+def create_rnn(num_classes, f_act):
 
     
     model = keras.models.Sequential()
     model.add(keras.Input(shape=(28,28,1))) # seq_length, input_size
     model.add(tf.keras.layers.Reshape((28, 28))) 
     #model.add(layers.SimpleRNN(128, return_sequences=True, activation='relu')) # N, 28, 128
-    model.add(tf.keras.layers.LSTM(128, return_sequences=False, activation='relu')) # N, 128
+    model.add(tf.keras.layers.LSTM(128, return_sequences=False, activation=f_act)) # N, 128
     model.add(tf.keras.layers.Dense(num_classes))
     print(model.summary())
     return model
 
 
-def compile(model):
+
+
+def compile_fit_cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, data_aug,lr, n_splits):
+
     loss = tf.keras.losses.SparseCategoricalCrossentropy(from_logits=True)
-    optim = tf.keras.optimizers.Adam(lr=0.001)
+    optim = tf.keras.optimizers.Adam(lr)
     metrics = ["accuracy"]
 
     model.compile(loss=loss, optimizer=optim, metrics=metrics)  
-    return model
 
-
-def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, data_aug, n_splits=5):
     x = np.concatenate([x_train, x_test])
     y = np.concatenate([y_train, y_test])
 
@@ -60,22 +65,71 @@ def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs
         _, accuracy = model.evaluate(x_val_fold, y_val_fold, verbose=0)
         scores.append(accuracy)
 
+    mean_score = np.mean(scores)
     print("Cross Validation Scores:", scores)
-    print("Média Scores:", np.mean(scores))
+    print("Média Scores:", mean_score)
+    return mean_score
 
 
 
+def double_digit_sec(secs):
+    if secs < 10:
+        return f"0{secs}"
+    return str(secs)
+
+
+
+def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
+    num_classes = 10
+
+    results = []
+
+    for param in ParameterGrid(params):
+
+        start_time = time.time()
+        rnn_model = create_rnn(num_classes, param['activation_function'])
+        print("Training with parameters:", param)
+        mean_score=compile_fit_cross_validation(rnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=2)
+        time_dif = time.time() - start_time
+        param["mean_score"] = round(mean_score,3)
+        param["time"] = f"{int(time_dif//60)}:" + double_digit_sec(int(time_dif - ((time_dif//60)*60)))
+        results.append(param)
+    
+    with open("Tuning_datasets/results_tuning_RNN.csv", mode='w', newline='') as p:
+        writer = csv.DictWriter(p, fieldnames=list(params.keys())+["mean_score", "time"])
+        writer.writeheader()
+        results = sorted(results, key = lambda dic: -dic['mean_score'])
+        for row in results:
+            writer.writerow(row)
+
+
+
+
+
+params = {
+    'epochs': [1],
+    'batch_size': [128],
+    'data_aug': [False],
+    'activation_function': ['relu'],
+    'learning_rate': [0.001]
+}
+
+
+'''
 num_classes = 10
-batch_size = 64
-epochs = 2
-data_aug = False
+batch_size = 128
+epochs = 1
+apply_data_augmentation = False
+lr = 0.001
+num_predictions = 20
+'''
 
 #ir buscar dados
 x_train, y_train, x_test, y_test, classes = prepare_data()
 #criar o modelo
-rnnmodel=create_rnn(num_classes)
+#rnnmodel=create_rnn(num_classes)
 #compilar o modelo
-compile(rnnmodel)
+tuning_and_csv_save(params, x_train, y_train, x_test, y_test)
 
 '''
 #ajuste do modelo
@@ -87,4 +141,3 @@ print("Accuracy: %.2f%%" % (scores[1]*100))
 print("Loss: %.2f%%" %(scores[0]*100))
 '''
 
-cross_validation(rnnmodel, x_train, y_train, x_test, y_test, batch_size, epochs, data_aug, n_splits=5)
