@@ -130,7 +130,7 @@ def double_digit_sec(secs):
     return str(secs)
 
 
-# Function for grid search
+
 def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
     num_classes = 10
 
@@ -155,7 +155,7 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
             writer.writerow(row)
 
 
-# Definindo os hiperparâmetros que queremos ajustar
+
 params = {
     'epochs': [1],
     'batch_size': [128],

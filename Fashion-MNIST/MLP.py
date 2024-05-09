@@ -4,7 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 import keras
 from get_data import *
-from sklearn.model_selection import cross_val_score, KFold
+from sklearn.model_selection import cross_val_score, KFold, ParameterGrid
+import time
+import csv
 
 
 
@@ -85,18 +87,59 @@ def cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=5):
 
         scores.append(accuracy)
 
+    mean_score = np.mean(scores)
     print("Cross Validation Scores:", scores)
-    print("Média Scores:", np.mean(scores))
+    print("Média Scores:", mean_score)
+    return mean_score
 
 
+def double_digit_sec(secs):
+    if secs < 10:
+        return f"0{secs}"
+    return str(secs)
+
+
+def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
+    num_classes = 10
+
+    results = []
+
+    for param in ParameterGrid(params):
+
+        start_time = time.time()
+        mlp = MLP(epochs=param['epochs'], batch_size=param['batch_size'], data_aug=param['data_aug'], f_act=param['activation_function'], lr=param['learning_rate'])
+        mlp.build()
+        print("Training with parameters:", param)
+        mean_score = cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=2)
+        time_dif = time.time() - start_time
+        param["mean_score"] = round(mean_score,3)
+        param["time"] = f"{int(time_dif//60)}:" + double_digit_sec(int(time_dif - ((time_dif//60)*60)))
+        results.append(param)
+    
+    with open("Tuning_datasets/results_tuning_MLP.csv", mode='w', newline='') as p:
+        writer = csv.DictWriter(p, fieldnames=list(params.keys())+["mean_score", "time"])
+        writer.writeheader()
+        results = sorted(results, key = lambda dic: -dic['mean_score'])
+        for row in results:
+            writer.writerow(row)
+
+
+params = {
+    'epochs': [1],
+    'batch_size': [128],
+    'data_aug': [False, True],
+    'activation_function': ['relu'],
+    'learning_rate': [0.001, 0.0001]
+}
 
 x_train, y_train, x_test, y_test, classes = prepare_data()
 y_train = tf.keras.utils.to_categorical(y_train)
 y_test = tf.keras.utils.to_categorical(y_test)
 
 
-mlp = MLP()
-mlp.build()
+tuning_and_csv_save(params, x_train, y_train, x_test, y_test)
+#mlp = MLP()
+#mlp.build()
 #mlp.fit(x_train, y_train)
 
 
@@ -104,7 +147,7 @@ mlp.build()
 #print('Test loss:', test_loss)
 #print('Test accuracy:', test_acc)
 
-cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=2)
+#cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=2)
 
 
 
