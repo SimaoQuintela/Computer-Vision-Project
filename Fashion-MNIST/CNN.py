@@ -6,6 +6,7 @@ import keras
 from get_data import *
 from sklearn.model_selection import cross_val_score, KFold, ParameterGrid
 import time
+import csv
 
 
 #CNN using the sequential API
@@ -95,7 +96,7 @@ def plot_learning_curves(history, epochs):
 
 
 
-def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, lr, n_splits=5):
+def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs, apply_data_augmentation, lr, n_splits):
     x = np.concatenate([x_train, x_test])
     y = np.concatenate([y_train, y_test])
 
@@ -123,7 +124,7 @@ def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs
 
 
 # Function for grid search
-def grid_search_cnn(params, x_train, y_train, x_test, y_test):
+def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
     num_classes = 10
 
     results = []
@@ -133,7 +134,12 @@ def grid_search_cnn(params, x_train, y_train, x_test, y_test):
         print("Training with parameters:", param)
         cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=5)
         results.append(param)
-    return(results)
+    
+    with open("results_tuning_CNN.csv", mode='w', newline='') as p:
+        writer = csv.DictWriter(p, fieldnames=params.keys())
+        writer.writeheader()
+        for row in results:
+            writer.writerow(row)
 
 
 # Definindo os hiperparâmetros que queremos ajustar
@@ -160,7 +166,7 @@ x_train, y_train, x_test, y_test, classes = prepare_data()
 #cnn_model = create_cnn(num_classes, 'relu')
 #compile and fit model
 
-grid_search_cnn(params, x_train, y_train, x_test, y_test)
+tuning_and_csv_save(params, x_train, y_train, x_test, y_test)
 
 
 
