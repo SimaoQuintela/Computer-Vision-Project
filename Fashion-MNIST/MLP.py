@@ -10,11 +10,13 @@ from sklearn.model_selection import cross_val_score, KFold
 
 class MLP:
      
-    def __init__(self, epochs=10, batch_size=32, output_neurons=10, data_aug=False):
+    def __init__(self, epochs=10, batch_size=32, output_neurons=10, data_aug=False, f_act="relu", lr=0.001):
         self.epochs = epochs
         self.batch_size = batch_size
         self.output_neurons = output_neurons
         self.data_aug = data_aug
+        self.f_act = f_act
+        self.lr = lr
         if self.data_aug:
             self.datagen = ImageDataGenerator(
                 rotation_range = 90, #randomly rotate images in the range (degrees, 0 to 180)
@@ -28,10 +30,12 @@ class MLP:
 
 
     def build(self):
+        optimizer = tf.keras.optimizers.Adam(learning_rate=self.lr)
+
         self.model = tf.keras.Sequential([
             tf.keras.layers.Flatten(input_shape=(28, 28, 1)),
-            tf.keras.layers.Dense(64, activation="relu"),
-            tf.keras.layers.Dense(128, activation="relu"),
+            tf.keras.layers.Dense(64, activation=self.f_act),
+            tf.keras.layers.Dense(128, activation=self.f_act),
             tf.keras.layers.Dense(self.output_neurons, activation="softmax"),
         ])
         self.model.compile(optimizer="adam",
@@ -100,7 +104,7 @@ mlp.build()
 #print('Test loss:', test_loss)
 #print('Test accuracy:', test_acc)
 
-cross_validation(mlp, x_train, y_train, x_test, y_test)
+cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=2)
 
 
 

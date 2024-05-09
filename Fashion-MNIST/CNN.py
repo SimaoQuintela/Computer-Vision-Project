@@ -124,6 +124,12 @@ def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs
 
 
 
+def double_digit_sec(secs):
+    if secs < 10:
+        return f"0{secs}"
+    return str(secs)
+
+
 # Function for grid search
 def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
     num_classes = 10
@@ -131,15 +137,20 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
     results = []
 
     for param in ParameterGrid(params):
+
+        start_time = time.time()
         cnn_model = create_cnn(num_classes, param['activation_function'])
         print("Training with parameters:", param)
         mean_score=cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=2)
-        param["mean score"]=mean_score
+        time_dif = time.time() - start_time
+        param["mean_score"] = round(mean_score,3)
+        param["time"] = f"{int(time_dif//60)}:" + double_digit_sec(int(time_dif - ((time_dif//60)*60)))
         results.append(param)
     
-    with open("results_tuning_CNN.csv", mode='w', newline='') as p:
-        writer = csv.DictWriter(p, fieldnames=params.keys()+["mean score"])
+    with open("Tuning_datasets/results_tuning_CNN.csv", mode='w', newline='') as p:
+        writer = csv.DictWriter(p, fieldnames=list(params.keys())+["mean_score", "time"])
         writer.writeheader()
+        results = sorted(results, key = lambda dic: -dic['mean_score'])
         for row in results:
             writer.writerow(row)
 
@@ -148,9 +159,9 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
 params = {
     'epochs': [1],
     'batch_size': [128],
-    'data_aug': [False],
+    'data_aug': [False, True],
     'activation_function': ['relu'],
-    'learning_rate': [0.001]
+    'learning_rate': [0.001, 0.0001]
 }
 
 

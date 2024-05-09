@@ -1,0 +1,5 @@
+epochs,batch_size,data_aug,activation_function,learning_rate,mean_score,time
+1,128,False,relu,0.001,0.869,1:52
+1,128,False,relu,0.0001,0.78,1:55
+1,128,True,relu,0.001,0.665,1:57
+1,128,True,relu,0.0001,0.571,2:10
