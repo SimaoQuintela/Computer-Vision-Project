@@ -117,9 +117,10 @@ def cross_validation(model, x_train, y_train, x_test, y_test, batch_size, epochs
         _, accuracy = model.evaluate(x_val_fold, y_val_fold)
 
         scores.append(accuracy)
-
+    mean_score=np.mean(scores)
     print("Cross Validation Scores:", scores)
-    print("Média Scores:", np.mean(scores))
+    print("Média Scores:", mean_score)
+    return mean_score
 
 
 
@@ -132,11 +133,12 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
     for param in ParameterGrid(params):
         cnn_model = create_cnn(num_classes, param['activation_function'])
         print("Training with parameters:", param)
-        cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=5)
+        mean_score=cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=2)
+        param["mean score"]=mean_score
         results.append(param)
     
     with open("results_tuning_CNN.csv", mode='w', newline='') as p:
-        writer = csv.DictWriter(p, fieldnames=params.keys())
+        writer = csv.DictWriter(p, fieldnames=params.keys()+["mean score"])
         writer.writeheader()
         for row in results:
             writer.writerow(row)
@@ -144,11 +146,11 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
 
 # Definindo os hiperparâmetros que queremos ajustar
 params = {
-    'epochs': [1, 2],
-    'batch_size': [32, 64],
-    'data_aug': [True, False],
-    'activation_function': ['relu', 'sigmoid', 'linear', 'tanh', 'softplus'],
-    'learning_rate': [0.1, 0.01, 0.001, 0.0001]
+    'epochs': [1],
+    'batch_size': [128],
+    'data_aug': [False],
+    'activation_function': ['relu'],
+    'learning_rate': [0.001]
 }
 
 
