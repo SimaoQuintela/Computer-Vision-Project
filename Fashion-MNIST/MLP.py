@@ -38,7 +38,7 @@ class MLP:
             tf.keras.layers.Dense(128, activation=self.f_act),
             tf.keras.layers.Dense(self.output_neurons, activation="softmax"),
         ])
-        self.model.compile(optimizer="adam",
+        self.model.compile(optimizer=optimizer,
                            loss="categorical_crossentropy",
                            metrics=['accuracy'])
     
