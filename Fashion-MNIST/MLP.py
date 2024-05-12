@@ -61,7 +61,7 @@ class MLP:
 
 
     def print_atributtes(self):
-        print(f"Epochs: {self.epochs}, Batch_size: {self.batch_size}, Output_neurons: {self.output_neurons}")
+        print(f"Epochs: {self.epochs}, Batch_size: {self.batch_size}, Output_neurons: {self.output_neurons}, Data_Augmentation: {self.data_aug}, Learning_Rate: {self.lr}, Activation_Function: {self.f_act}")
 
 
 
@@ -110,7 +110,7 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
         mlp = MLP(epochs=param['epochs'], batch_size=param['batch_size'], data_aug=param['data_aug'], f_act=param['activation_function'], lr=param['learning_rate'])
         mlp.build()
         print("Training with parameters:", param)
-        mean_score = cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=2)
+        mean_score = cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=5)
         time_dif = time.time() - start_time
         param["mean_score"] = round(mean_score,3)
         param["time"] = f"{int(time_dif//60)}:" + double_digit_sec(int(time_dif - ((time_dif//60)*60)))
@@ -125,11 +125,11 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
 
 
 params = {
-    'epochs': [1],
-    'batch_size': [128],
+    'epochs': [5,10],
+    'batch_size': [64,128],
     'data_aug': [False, True],
-    'activation_function': ['relu'],
-    'learning_rate': [0.001, 0.0001]
+    'activation_function': ['relu','sigmoid'],
+    'learning_rate': [0.001, 0.01]
 }
 
 x_train, y_train, x_test, y_test, classes = prepare_data()
