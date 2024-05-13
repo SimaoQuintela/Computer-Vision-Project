@@ -89,7 +89,7 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
         start_time = time.time()
         rnn_model = create_rnn(num_classes, param['activation_function'])
         print("Training with parameters:", param)
-        mean_score=compile_fit_cross_validation(rnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=2)
+        mean_score=compile_fit_cross_validation(rnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=5)
         time_dif = time.time() - start_time
         param["mean_score"] = round(mean_score,3)
         param["time"] = f"{int(time_dif//60)}:" + double_digit_sec(int(time_dif - ((time_dif//60)*60)))
@@ -107,11 +107,11 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
 
 
 params = {
-    'epochs': [1],
-    'batch_size': [128],
-    'data_aug': [False],
-    'activation_function': ['relu'],
-    'learning_rate': [0.001]
+    'epochs': [5, 10],
+    'batch_size': [64, 128],
+    'data_aug': [False, True],
+    'activation_function': ['relu', 'sigmoid'],
+    'learning_rate': [0.001, 0.01]
 }
 
 
