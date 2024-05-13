@@ -10,7 +10,7 @@ import time
 import csv
 
 
-#usar simpleRNN, GRU, LTSM ou Bidirectional
+
 def create_rnn(num_classes, f_act):
 
     
@@ -115,29 +115,11 @@ params = {
 }
 
 
-'''
-num_classes = 10
-batch_size = 128
-epochs = 1
-apply_data_augmentation = False
-lr = 0.001
-num_predictions = 20
-'''
 
-#ir buscar dados
+
+#load dados
 x_train, y_train, x_test, y_test, classes = prepare_data()
-#criar o modelo
-#rnnmodel=create_rnn(num_classes)
-#compilar o modelo
+
 tuning_and_csv_save(params, x_train, y_train, x_test, y_test)
 
-'''
-#ajuste do modelo
-rnnmodel.fit(x_train, y_train, batch_size=batch_size, epochs=epochs, verbose=2)
-
-# avaliação dos resultados
-scores=rnnmodel.evaluate(x_test, y_test, batch_size=batch_size, verbose=2)
-print("Accuracy: %.2f%%" % (scores[1]*100))
-print("Loss: %.2f%%" %(scores[0]*100))
-'''
 

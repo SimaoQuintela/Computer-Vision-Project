@@ -141,7 +141,7 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
         start_time = time.time()
         cnn_model = create_cnn(num_classes, param['activation_function'])
         print("Training with parameters:", param)
-        mean_score=cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=2)
+        mean_score=cross_validation(cnn_model, x_train, y_train, x_test, y_test, param['batch_size'], param['epochs'], param['data_aug'], param['learning_rate'], n_splits=5)
         time_dif = time.time() - start_time
         param["mean_score"] = round(mean_score,3)
         param["time"] = f"{int(time_dif//60)}:" + double_digit_sec(int(time_dif - ((time_dif//60)*60)))
@@ -157,40 +157,22 @@ def tuning_and_csv_save(params, x_train, y_train, x_test, y_test):
 
 
 params = {
-    'epochs': [1],
-    'batch_size': [128],
+    'epochs': [5,10],
+    'batch_size': [64,128],
     'data_aug': [False, True],
-    'activation_function': ['relu'],
-    'learning_rate': [0.001, 0.0001]
+    'activation_function': ['relu', 'sigmoid'],
+    'learning_rate': [0.01, 0.001]
 }
 
 
-'''
-num_classes = 10
-batch_size = 128
-epochs = 1
-apply_data_augmentation = False
-lr = 0.001
-num_predictions = 20
-'''
+
 #load data
 x_train, y_train, x_test, y_test, classes = prepare_data()
-#create the model
-#cnn_model = create_cnn(num_classes, 'relu')
-#compile and fit model
+
 
 tuning_and_csv_save(params, x_train, y_train, x_test, y_test)
 
 
 
-'''
-cnn_model, history = compile_and_fit(cnn_model, x_train, y_train, x_test, y_test,
- batch_size, epochs, apply_data_augmentation)
-#Evaluate trained model
-score = cnn_model.evaluate(x_test, y_test)
-print('Evaluation Loss:', score[0])
-print('Evaluation Accuracy:', score[1])
 
-plot_learning_curves(history, epochs)
-'''
 

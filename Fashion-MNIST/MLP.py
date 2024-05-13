@@ -138,16 +138,7 @@ y_test = tf.keras.utils.to_categorical(y_test)
 
 
 tuning_and_csv_save(params, x_train, y_train, x_test, y_test)
-#mlp = MLP()
-#mlp.build()
-#mlp.fit(x_train, y_train)
 
-
-#test_loss, test_acc = mlp.model.evaluate(x_test, y_test)
-#print('Test loss:', test_loss)
-#print('Test accuracy:', test_acc)
-
-#cross_validation(mlp, x_train, y_train, x_test, y_test, n_splits=2)
 
 
 
